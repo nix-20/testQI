@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Test QI Gratuito</title>
+  <style>
+    body { font-family: Arial, sans-serif; background: #f4f4f4; margin: 0; padding: 20px; text-align: center; }
+    h1 { color: #333; }
+    #quizBox { background: #fff; padding: 20px; border-radius: 10px; max-width: 600px; margin: 20px auto; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
+    .question { font-size: 18px; margin-bottom: 15px; }
+    .options button { display: block; margin: 5px auto; padding: 10px 20px; width: 100%; max-width: 400px; }
+    #startBtn, #restartBtn { padding: 12px 30px; font-size: 16px; margin-top: 20px; }
+    #timer { font-weight: bold; margin-bottom: 10px; }
+    #result { font-size: 20px; margin-top: 20px; }
+  </style>
+</head>
+<body>
+  <h1>Test QI Gratuito</h1>
+  <div id="quizBox">
+    <div id="startScreen">
+      <p>Scopri il tuo QI stimato con 20 domande logiche!</p>
+      <button id="startBtn">Inizia il test</button>
+    </div>
+    <div id="quizScreen" style="display:none;">
+      <div id="timer">Tempo: <span id="timeLeft">20</span>s</div>
+      <div class="question" id="questionText"></div>
+      <div class="options" id="optionsBox"></div>
+    </div>
+    <div id="resultScreen" style="display:none;">
+      <div id="result"></div>
+      <button id="restartBtn">Riprova</button>
+    </div>
+  </div>
+
+  <script>
+    const questions = [
+      {
+        text: "Quale numero completa la serie: 2, 4, 8, 16, ?",
+        options: ["18", "24", "32", "30"],
+        answer: "32"
+      },
+      {
+        text: "Se tutti i gatti sono animali e alcuni animali sono neri, allora:",
+        options: [
+          "Tutti i gatti sono neri",
+          "Alcuni gatti sono neri",
+          "Alcuni animali neri sono gatti",
+          "Non si può determinare"
+        ],
+        answer: "Non si può determinare"
+      },
+      {
+        text: "Trova l’intruso: triangolo, cerchio, cubo, quadrato",
+        options: ["Triangolo", "Cerchio", "Cubo", "Quadrato"],
+        answer: "Cubo"
+      },
+      {
+        text: "Se MARZO è codificato come 4173915, come sarà codificato APRILE?",
+        options: ["1169185", "1185912", "1195812", "1185915"],
+        answer: "1185912"
+      },
+      {
+        text: "10 persone si stringono la mano una volta: quante strette totali?",
+        options: ["10", "20", "45", "90"],
+        answer: "45"
+      },
+      {
+        text: "Qual è la prossima figura? ▲, ■, ▲, ■, ?",
+        options: ["▲", "■", "●", "◆"],
+        answer: "▲"
+      },
+      {
+        text: "Anna è più alta di Luca. Luca è più alto di Marco. Chi è più basso?",
+        options: ["Anna", "Luca", "Marco", "Non si sa"],
+        answer: "Marco"
+      },
+      {
+        text: "Se 3 libri costano 27€, quanto costano 7 libri?",
+        options: ["63€", "81€", "70€", "90€"],
+        answer: "63€"
+      },
+      {
+        text: "ABC sta a DEF come GHI sta a...",
+        options: ["JKL", "LMN", "IJK", "GKL"],
+        answer: "JKL"
+      },
+      {
+        text: "Completa la serie: 1, 1, 2, 3, 5, 8, ?",
+        options: ["13", "11", "10", "9"],
+        answer: "13"
+      },
+      {
+        text: "Qual è l'opposto di “sempre”?",
+        options: ["Mai", "Spesso", "Ogni tanto", "Raramente"],
+        answer: "Mai"
+      },
+      {
+        text: "Un treno viaggia a 100 km/h. Quanto percorre in 2,5 ore?",
+        options: ["200 km", "250 km", "150 km", "275 km"],
+        answer: "250 km"
+      },
+      {
+        text: "Se un aereo si schianta tra Italia e Francia, dove si seppelliscono i sopravvissuti?",
+        options: [
+          "In Francia",
+          "In Italia",
+          "Al confine",
+          "Da nessuna parte"
+        ],
+        answer: "Da nessuna parte"
+      },
+      {
+        text: "Quale parola è diversa: Sole, Luna, Stella, Lampada",
+        options: ["Sole", "Luna", "Stella", "Lampada"],
+        answer: "Lampada"
+      },
+      {
+        text: "Se oggi è lunedì, che giorno sarà tra 10 giorni?",
+        options: ["Giovedì", "Mercoledì", "Venerdì", "Domenica"],
+        answer: "Giovedì"
+      },
+      {
+        text: "Quanto fa: (3 + 5) × 2?",
+        options: ["16", "13", "10", "12"],
+        answer: "16"
+      },
+      {
+        text: "Quante lettere ha la parola 'intelligenza'?",
+        options: ["12", "11", "13", "14"],
+        answer: "12"
+      },
+      {
+        text: "Quale numero è mancante? 9, 7, 5, 3, ?",
+        options: ["1", "2", "0", "-1"],
+        answer: "1"
+      },
+      {
+        text: "Se un orologio segna le 3:15, qual è l’angolo tra le lancette?",
+        options: ["7.5°", "0°", "30°", "45°"],
+        answer: "7.5°"
+      },
+      {
+        text: "Quante zampe hanno in totale 3 gatti e 2 cani?",
+        options: ["16", "20", "14", "18"],
+        answer: "16"
+      }
+    ];
+
+    let currentQuestion = 0;
+    let score = 0;
+    let timer;
+    let timeLeft = 20;
+
+    const startBtn = document.getElementById("startBtn");
+    const restartBtn = document.getElementById("restartBtn");
+    const quizScreen = document.getElementById("quizScreen");
+    const startScreen = document.getElementById("startScreen");
+    const resultScreen = document.getElementById("resultScreen");
+    const questionText = document.getElementById("questionText");
+    const optionsBox = document.getElementById("optionsBox");
+    const timeDisplay = document.getElementById("timeLeft");
+    const result = document.getElementById("result");
+
+    startBtn.onclick = () => {
+      startScreen.style.display = "none";
+      quizScreen.style.display = "block";
+      loadQuestion();
+    };
+
+    restartBtn.onclick = () => {
+      location.reload();
+    };
+
+    function loadQuestion() {
+      if (currentQuestion >= questions.length) {
+        endQuiz();
+        return;
+      }
+      const q = questions[currentQuestion];
+      questionText.textContent = q.text;
+      optionsBox.innerHTML = "";
+      q.options.forEach(opt => {
+        const btn = document.createElement("button");
+        btn.textContent = opt;
+        btn.onclick = () => checkAnswer(opt);
+        optionsBox.appendChild(btn);
+      });
+      timeLeft = 20;
+      timeDisplay.textContent = timeLeft;
+      timer = setInterval(() => {
+        timeLeft--;
+        timeDisplay.textContent = timeLeft;
+        if (timeLeft <= 0) {
+          clearInterval(timer);
+          currentQuestion++;
+          loadQuestion();
+        }
+      }, 1000);
+    }
+
+    function checkAnswer(selected) {
+      clearInterval(timer);
+      if (selected === questions[currentQuestion].answer) score++;
+      currentQuestion++;
+      loadQuestion();
+    }
+
+    function endQuiz() {
+      quizScreen.style.display = "none";
+      resultScreen.style.display = "block";
+      const iq = Math.round(80 + (score / questions.length) * 60); // QI tra 80 e 140
+      let comment = "";
+      if (iq >= 130) comment = "Geniale!";
+      else if (iq >= 115) comment = "Molto intelligente!";
+      else if (iq >= 100) comment = "Intelligenza nella media";
+      else comment = "Sotto la media (ma puoi migliorare!)";
+      result.innerHTML = `Hai totalizzato ${score}/${questions.length} risposte corrette.<br><br><strong>QI stimato: ${iq}</strong><br>${comment}`;
+    }
+  </script>
+</body>
+</html>
